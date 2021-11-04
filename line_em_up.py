@@ -100,6 +100,51 @@ class Game:
 		else:
 			return True
 
+	def e1(self):
+		max_o_counter = 0
+		o_freq_counter = 0
+		for i in range(self.n):			
+			for j in range(self.n):
+				if j + self.s > self.n: break
+				o_counter = 0
+				for k in range(j, j + self.s):
+					cell = self.current_state[i][k]
+					if cell == 'B' or cell == 'X':
+						o_counter = 0
+						break
+					elif cell == 'O':
+						o_counter += 1
+				if o_counter > max_o_counter:
+					max_o_counter = o_counter
+					o_freq_counter = 1
+				elif o_counter == max_o_counter:
+					o_freq_counter += 1
+
+		max_x_counter = 0
+		x_freq_counter = 0
+		for i in range(self.n):			
+			for j in range(self.n):
+				if j + self.s > self.n: break
+				x_counter = 0
+				for k in range(j, j + self.s):
+					cell = self.current_state[i][k]
+					if cell == 'B' or cell == 'O':
+						x_counter = 0
+						break
+					elif cell == 'X':
+						x_counter += 1
+				if x_counter > max_x_counter:
+					max_x_counter = x_counter
+					x_freq_counter = 1
+				elif x_counter == max_x_counter:
+					x_freq_counter += 1
+
+		heuristic_value = max_o_counter - max_x_counter
+		if heuristic_value == 0:
+			heuristic_value = o_freq_counter - x_freq_counter
+
+		return heuristic_value
+
 	def is_end(self):
 		# Vertical win
 		for i in range(0, 3):
@@ -162,27 +207,24 @@ class Game:
 			self.player_turn = 'X'
 		return self.player_turn
 
-	def minimax(self, max=False):
+	def minimax(self, remainingDepth, max=False):
 		# Minimizing for 'X' and maximizing for 'O'
 		# Possible values are:
 		# -1 - win for 'X'
 		# 0  - a tie
 		# 1  - loss for 'X'
-		# We're initially setting it to 2 or -2 as worse than the worst case:
-		value = 2
+		# We're initially setting it to 999 or -999 as worse than the worst case:
+		value = 999
 		if max:
-			value = -2
+			value = -999
 		x = None
 		y = None
-		result = self.is_end()
-		if result == 'X':
-			return (-1, x, y)
-		elif result == 'O':
-			return (1, x, y)
-		elif result == '.':
-			return (0, x, y)
-		for i in range(0, 3):
-			for j in range(0, 3):
+
+		if remainingDepth <= 0:
+			return (self.e1(), x, y)
+
+		for i in range(self.n):
+			for j in range(self.n):
 				if self.current_state[i][j] == '.':
 					if max:
 						self.current_state[i][j] = 'O'
