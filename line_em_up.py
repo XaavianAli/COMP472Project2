@@ -86,8 +86,8 @@ class Game:
 
 	def draw_board(self):
 		print()
-		for y in range(0, 3):
-			for x in range(0, 3):
+		for y in range(self.n):
+			for x in range(self.n):
 				print(F'{self.current_state[x][y]}', end="")
 			print()
 		print()
@@ -103,6 +103,10 @@ class Game:
 	def e1(self):
 		max_o_counter = 0
 		o_freq_counter = 0
+		max_x_counter = 0
+		x_freq_counter = 0
+
+		# Horizontal score for O
 		for i in range(self.n):			
 			for j in range(self.n):
 				if j + self.s > self.n: break
@@ -120,8 +124,63 @@ class Game:
 				elif o_counter == max_o_counter:
 					o_freq_counter += 1
 
-		max_x_counter = 0
-		x_freq_counter = 0
+		# Vertical score for O
+		for i in range(self.n):			
+			for j in range(self.n):
+				if j + self.s > self.n: break
+				o_counter = 0
+				for k in range(j, j + self.s):
+					cell = self.current_state[k][i]
+					if cell == 'B' or cell == 'X':
+						o_counter = 0
+						break
+					elif cell == 'O':
+						o_counter += 1
+				if o_counter > max_o_counter:
+					max_o_counter = o_counter
+					o_freq_counter = 1
+				elif o_counter == max_o_counter:
+					o_freq_counter += 1
+
+		# Diagonal (\) score for O
+		for i in range(self.n):
+			if i + self.s > self.n: break		
+			for j in range(self.n):
+				if j + self.s > self.n: break
+				o_counter = 0
+				for k in range(self.s):
+					cell = self.current_state[i+k][j+k]
+					if cell == 'B' or cell == 'X':
+						o_counter = 0
+						break
+					elif cell == 'O':
+						o_counter += 1
+				if o_counter > max_o_counter:
+					max_o_counter = o_counter
+					o_freq_counter = 1
+				elif o_counter == max_o_counter:
+					o_freq_counter += 1
+
+		# Diagonal (/) score for O
+		for i in range(self.n):
+			if i + self.s > self.n: break		
+			for j in range(self.n):
+				if j - (self.s - 1) < 0: break
+				o_counter = 0
+				for k in range(self.s):
+					cell = self.current_state[i+k][j-k]
+					if cell == 'B' or cell == 'X':
+						o_counter = 0
+						break
+					elif cell == 'O':
+						o_counter += 1
+				if o_counter > max_o_counter:
+					max_o_counter = o_counter
+					o_freq_counter = 1
+				elif o_counter == max_o_counter:
+					o_freq_counter += 1
+
+		# Horizontal score for X
 		for i in range(self.n):			
 			for j in range(self.n):
 				if j + self.s > self.n: break
@@ -138,6 +197,62 @@ class Game:
 					x_freq_counter = 1
 				elif x_counter == max_x_counter:
 					x_freq_counter += 1
+
+		# Vertical score for X
+		for i in range(self.n):			
+			for j in range(self.n):
+				if j + self.s > self.n: break
+				x_counter = 0
+				for k in range(j, j + self.s):
+					cell = self.current_state[k][i]
+					if cell == 'B' or cell == 'O':
+						x_counter = 0
+						break
+					elif cell == 'X':
+						x_counter += 1
+				if x_counter > max_x_counter:
+					max_x_counter = x_counter
+					x_freq_counter = 1
+				elif x_counter == max_x_counter:
+					x_freq_counter += 1
+
+		# Diagonal (\) score for X
+		for i in range(self.n):
+			if i + self.s > self.n: break		
+			for j in range(self.n):
+				if j + self.s > self.n: break
+				o_counter = 0
+				for k in range(self.s):
+					cell = self.current_state[i+k][j+k]
+					if cell == 'B' or cell == 'O':
+						o_counter = 0
+						break
+					elif cell == 'X':
+						o_counter += 1
+				if o_counter > max_o_counter:
+					max_o_counter = o_counter
+					o_freq_counter = 1
+				elif o_counter == max_o_counter:
+					o_freq_counter += 1
+
+		# Diagonal (/) score for X
+		for i in range(self.n):
+			if i + self.s > self.n: break		
+			for j in range(self.n):
+				if j - (self.s - 1) < 0: break
+				o_counter = 0
+				for k in range(self.s):
+					cell = self.current_state[i+k][j-k]
+					if cell == 'B' or cell == 'O':
+						o_counter = 0
+						break
+					elif cell == 'X':
+						o_counter += 1
+				if o_counter > max_o_counter:
+					max_o_counter = o_counter
+					o_freq_counter = 1
+				elif o_counter == max_o_counter:
+					o_freq_counter += 1
 
 		heuristic_value = max_o_counter - max_x_counter
 		if heuristic_value == 0:
@@ -329,8 +444,8 @@ class Game:
 def main():
 	g = Game(recommend=True)
 	g.initialize_game()
-	g.play(algo=Game.ALPHABETA,player_x=Game.AI,player_o=Game.AI)
 	g.play(algo=Game.MINIMAX,player_x=Game.AI,player_o=Game.HUMAN)
+	g.play(algo=Game.ALPHABETA,player_x=Game.AI,player_o=Game.AI)
 
 if __name__ == "__main__":
 	main()
