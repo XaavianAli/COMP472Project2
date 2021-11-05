@@ -100,6 +100,42 @@ class Game:
 		else:
 			return True
 
+	def is_valid_move(self, px, py):
+		x = self.letter_to_int(px)
+		y = py
+		if x == None or y < 0 or y > self.n - 1:
+			return False
+		elif self.current_state[x][y] != '.':
+			return False
+		else:
+			return True
+
+	def letter_to_int(self, letter):
+		if letter == 'A': return 0
+		elif letter == 'B': return 1
+		elif letter == 'C': return 2
+		elif letter == 'D': return 3
+		elif letter == 'E': return 4
+		elif letter == 'F': return 5
+		elif letter == 'G': return 6
+		elif letter == 'H': return 7
+		elif letter == 'I': return 8
+		elif letter == 'J': return 9
+		else: return None
+
+	def int_to_letter(self, int):
+		if int == 0: return 'A'
+		if int == 1: return 'B'
+		if int == 2: return 'C'
+		if int == 3: return 'D'
+		if int == 4: return 'E'
+		if int == 5: return 'F'
+		if int == 6: return 'G'
+		if int == 7: return 'H'
+		if int == 8: return 'I'
+		if int == 9: return 'J'
+		else: return None
+
 	def e1(self):
 		max_o_counter = 0
 		o_freq_counter = 0
@@ -344,10 +380,10 @@ class Game:
 	def input_move(self):
 		while True:
 			print(F'Player {self.player_turn}, enter your move:')
-			px = int(input('enter the x coordinate: '))
-			py = int(input('enter the y coordinate: '))
-			if self.is_valid(px, py):
-				return (px,py)
+			px = input('enter the x coordinate (as a capital letter between A and the nth letter of the english alphabet): ')
+			py = int(input('enter the y coordinate in [0..n-1]: '))
+			if self.is_valid_move(px, py):
+				return (self.letter_to_int(px),py)
 			else:
 				print('The move is not valid! Try again.')
 
@@ -360,16 +396,19 @@ class Game:
 
 	def minimax(self, remainingDepth, max=False):
 		# Minimizing for 'X' and maximizing for 'O'
-		# Possible values are:
-		# -1 - win for 'X'
-		# 0  - a tie
-		# 1  - loss for 'X'
-		# We're initially setting it to 999 or -999 as worse than the worst case:
 		value = 999
 		if max:
 			value = -999
 		x = None
 		y = None
+
+		result = self.is_end()
+		if result == 'X':
+			return (-500, x, y)
+		elif result == 'O':
+			return (500, x, y)
+		elif result == '.':
+			return (0, x, y)
 
 		if remainingDepth <= 0:
 			return (self.e1(), x, y)
@@ -379,14 +418,14 @@ class Game:
 				if self.current_state[i][j] == '.':
 					if max:
 						self.current_state[i][j] = 'O'
-						(v, _, _) = self.minimax(max=False)
+						(v, _, _) = self.minimax(remainingDepth - 1, max=False)
 						if v > value:
 							value = v
 							x = i
 							y = j
 					else:
 						self.current_state[i][j] = 'X'
-						(v, _, _) = self.minimax(max=True)
+						(v, _, _) = self.minimax(remainingDepth - 1, max=True)
 						if v < value:
 							value = v
 							x = i
@@ -457,9 +496,9 @@ class Game:
 			start = time.time()
 			if algo == self.MINIMAX:
 				if self.player_turn == 'X':
-					(_, x, y) = self.minimax(max=False)
+					(_, x, y) = self.minimax(self.d1, max=False)
 				else:
-					(_, x, y) = self.minimax(max=True)
+					(_, x, y) = self.minimax(self.d2, max=True)
 			else: # algo == self.ALPHABETA
 				if self.player_turn == 'X':
 					(m, x, y) = self.alphabeta(max=False)
@@ -469,7 +508,7 @@ class Game:
 			if (self.player_turn == 'X' and player_x == self.HUMAN) or (self.player_turn == 'O' and player_o == self.HUMAN):
 					if self.recommend:
 						print(F'Evaluation time: {round(end - start, 7)}s')
-						print(F'Recommended move: x = {x}, y = {y}')
+						print(F'Recommended move: x = {self.int_to_letter(x)}, y = {y}')
 					(x,y) = self.input_move()
 			if (self.player_turn == 'X' and player_x == self.AI) or (self.player_turn == 'O' and player_o == self.AI):
 						print(F'Evaluation time: {round(end - start, 7)}s')
@@ -480,8 +519,23 @@ class Game:
 def main():
 	g = Game(recommend=True)
 	g.initialize_game()
-	g.play(algo=Game.MINIMAX,player_x=Game.AI,player_o=Game.HUMAN)
-	g.play(algo=Game.ALPHABETA,player_x=Game.AI,player_o=Game.AI)
+	types = player_types_string_to_enum(g.play_mode)
+	g.play(algo=Game.MINIMAX,player_x=types[0],player_o=types[1])
+	# g.play(algo=Game.ALPHABETA,player_x=Game.AI,player_o=Game.AI)
+
+def player_types_string_to_enum(types_string):
+	types = types_string.split("-")
+	if types[0] == "H":
+		types[0] = Game.HUMAN
+	elif types[0] == "AI":
+		types[0] = Game.AI
+
+	if types[1] == "H":
+		types[1] = Game.HUMAN
+	elif types[1] == "AI":
+		types[1] = Game.AI
+
+	return types
 
 if __name__ == "__main__":
 	main()
