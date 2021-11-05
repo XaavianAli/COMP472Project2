@@ -261,35 +261,71 @@ class Game:
 		return heuristic_value
 
 	def is_end(self):
-		# Vertical win
-		for i in range(0, 3):
-			if (self.current_state[0][i] != '.' and
-				self.current_state[0][i] == self.current_state[1][i] and
-				self.current_state[1][i] == self.current_state[2][i]):
-				return self.current_state[0][i]
 		# Horizontal win
-		for i in range(0, 3):
-			if (self.current_state[i] == ['X', 'X', 'X']):
-				return 'X'
-			elif (self.current_state[i] == ['O', 'O', 'O']):
-				return 'O'
-		# Main diagonal win
-		if (self.current_state[0][0] != '.' and
-			self.current_state[0][0] == self.current_state[1][1] and
-			self.current_state[0][0] == self.current_state[2][2]):
-			return self.current_state[0][0]
-		# Second diagonal win
-		if (self.current_state[0][2] != '.' and
-			self.current_state[0][2] == self.current_state[1][1] and
-			self.current_state[0][2] == self.current_state[2][0]):
-			return self.current_state[0][2]
-		# Is whole board full?
-		for i in range(0, 3):
-			for j in range(0, 3):
-				# There's an empty field, we continue the game
+		for i in range(self.n):			
+			for j in range(self.n):
+				if j + self.s > self.n: break
+				symbol = self.current_state[i][j]
+				if symbol == '.' or symbol == 'B': continue
+				symbol_counter = 0
+				for k in range(j, j + self.s):
+					cell = self.current_state[i][k]
+					if cell == symbol:
+						symbol_counter += 1
+				if symbol_counter == self.s: 
+					return symbol
+
+		# Vertical win
+		for i in range(self.n):			
+			for j in range(self.n):
+				if j + self.s > self.n: break
+				symbol = self.current_state[j][i]
+				if symbol == '.' or symbol == 'B': continue
+				symbol_counter = 0
+				for k in range(j, j + self.s):
+					cell = self.current_state[k][i]
+					if cell == symbol:
+						symbol_counter += 1
+				if symbol_counter == self.s: 
+					return symbol
+
+		# Diagonal (\) win
+		for i in range(self.n):
+			if i + self.s > self.n: break		
+			for j in range(self.n):
+				if j + self.s > self.n: break
+				symbol = self.current_state[i][j]
+				if symbol == '.' or symbol == 'B': continue
+				symbol_counter = 0
+				for k in range(self.s):
+					cell = self.current_state[i+k][j+k]
+					if cell == symbol:
+						symbol_counter += 1
+				if symbol_counter == self.s: 
+					return symbol
+
+		# Diagonal (/) win
+		for i in range(self.n):
+			if i + self.s > self.n: break		
+			for j in range(self.n):
+				if j - (self.s - 1) < 0: break
+				symbol = self.current_state[i][j]
+				if symbol == '.' or symbol == 'B': continue
+				symbol_counter = 0
+				for k in range(self.s):
+					cell = self.current_state[i+k][j-k]
+					if cell == symbol:
+						symbol_counter += 1
+				if symbol_counter == self.s: 
+					return symbol
+
+		# Board not full
+		for i in range(self.n):
+			for j in range(self.n):
 				if (self.current_state[i][j] == '.'):
 					return None
-		# It's a tie!
+
+		# Tie
 		return '.'
 
 	def check_end(self):
