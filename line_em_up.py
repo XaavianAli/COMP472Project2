@@ -28,7 +28,8 @@ class Game:
 		
 		blocs_positions = []
 		blocs_count = 0
-		print("Enter the coordinates of the blocs:")
+		if blocs_count != 0:
+			print("Enter the coordinates of the blocs:")
 		while(blocs_count < self.b):
 			print(F"Bloc {blocs_count + 1}:")
 			x = int(input('enter the x coordinate: '))
@@ -201,7 +202,7 @@ class Game:
 		for i in range(self.n):
 			if i + self.s > self.n: break		
 			for j in range(self.n):
-				if j - (self.s - 1) < 0: break
+				if j - (self.s - 1) < 0: continue
 				o_counter = 0
 				for k in range(self.s):
 					cell = self.current_state[i+k][j-k]
@@ -257,38 +258,38 @@ class Game:
 			if i + self.s > self.n: break		
 			for j in range(self.n):
 				if j + self.s > self.n: break
-				o_counter = 0
+				x_counter = 0
 				for k in range(self.s):
 					cell = self.current_state[i+k][j+k]
 					if cell == 'B' or cell == 'O':
-						o_counter = 0
+						x_counter = 0
 						break
 					elif cell == 'X':
-						o_counter += 1
-				if o_counter > max_o_counter:
-					max_o_counter = o_counter
-					o_freq_counter = 1
-				elif o_counter == max_o_counter:
-					o_freq_counter += 1
+						x_counter += 1
+				if x_counter > max_x_counter:
+					max_x_counter = x_counter
+					x_freq_counter = 1
+				elif x_counter == max_x_counter:
+					x_freq_counter += 1
 
 		# Diagonal (/) score for X
 		for i in range(self.n):
 			if i + self.s > self.n: break		
 			for j in range(self.n):
-				if j - (self.s - 1) < 0: break
-				o_counter = 0
+				if j - (self.s - 1) < 0: continue
+				x_counter = 0
 				for k in range(self.s):
 					cell = self.current_state[i+k][j-k]
 					if cell == 'B' or cell == 'O':
-						o_counter = 0
+						x_counter = 0
 						break
 					elif cell == 'X':
-						o_counter += 1
-				if o_counter > max_o_counter:
-					max_o_counter = o_counter
-					o_freq_counter = 1
-				elif o_counter == max_o_counter:
-					o_freq_counter += 1
+						x_counter += 1
+				if x_counter > max_x_counter:
+					max_x_counter = x_counter
+					x_freq_counter = 1
+				elif x_counter == max_x_counter:
+					x_freq_counter += 1
 
 		heuristic_value = max_o_counter - max_x_counter
 		if heuristic_value == 0:
@@ -344,7 +345,7 @@ class Game:
 		for i in range(self.n):
 			if i + self.s > self.n: break		
 			for j in range(self.n):
-				if j - (self.s - 1) < 0: break
+				if j - (self.s - 1) < 0: continue
 				symbol = self.current_state[i][j]
 				if symbol == '.' or symbol == 'B': continue
 				symbol_counter = 0
@@ -401,6 +402,9 @@ class Game:
 			value = -999
 		x = None
 		y = None
+
+		if time.time() - self.start > 0.95 * self.t:
+			return (0, x, y)
 
 		result = self.is_end()
 		if result == 'X':
@@ -493,7 +497,7 @@ class Game:
 			self.draw_board()
 			if self.check_end():
 				return
-			start = time.time()
+			self.start = time.time()
 			if algo == self.MINIMAX:
 				if self.player_turn == 'X':
 					(_, x, y) = self.minimax(self.d1, max=False)
@@ -507,11 +511,11 @@ class Game:
 			end = time.time()
 			if (self.player_turn == 'X' and player_x == self.HUMAN) or (self.player_turn == 'O' and player_o == self.HUMAN):
 					if self.recommend:
-						print(F'Evaluation time: {round(end - start, 7)}s')
+						print(F'Evaluation time: {round(end - self.start, 7)}s')
 						print(F'Recommended move: x = {self.int_to_letter(x)}, y = {y}')
 					(x,y) = self.input_move()
 			if (self.player_turn == 'X' and player_x == self.AI) or (self.player_turn == 'O' and player_o == self.AI):
-						print(F'Evaluation time: {round(end - start, 7)}s')
+						print(F'Evaluation time: {round(end - self.start, 7)}s')
 						print(F'Player {self.player_turn} under AI control plays: x = {x}, y = {y}')
 			self.current_state[x][y] = self.player_turn
 			self.switch_player()
