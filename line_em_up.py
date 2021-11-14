@@ -301,8 +301,188 @@ class Game:
 		heuristic_value = max_o_counter - max_x_counter
 		if heuristic_value == 0:
 			heuristic_value = o_freq_counter - x_freq_counter
-
+	
 		return heuristic_value
+	
+	# Calculates the lines that can be formed for both X and O with the open tiles.
+	def e2(self):
+		heuristic = 0
+		for i in range(self.n):
+			for j in range(self.n):
+				if self.current_state[i][j] == '.':
+					# Left and right move value
+					k = 1
+					consecutive_minus_x = 0
+					consecutive_minus_o = 0
+
+					while j - k >= 0:
+						if self.current_state[i][j - k] == 'X':
+							if consecutive_minus_o > 0:
+								break
+							consecutive_minus_x += 1
+						elif self.current_state[i][j - k] == 'O':
+							if consecutive_minus_x > 0:
+								break
+							consecutive_minus_o += 1
+						else:
+							break
+						k += 1
+
+					k = 1
+					consecutive_plus_x = 0
+					consecutive_plus_o = 0
+					while j + k < self.n:
+						if self.current_state[i][j + k] == 'X':
+							if consecutive_plus_o > 0:
+								break
+							consecutive_plus_x += 1
+						elif self.current_state[i][j + k] == 'O':
+							if consecutive_plus_x > 0:
+								break
+							consecutive_plus_o += 1
+						else:
+							break
+						k += 1
+
+					if consecutive_plus_o == 0 and consecutive_minus_o == 0:
+						move_value = (consecutive_plus_x + consecutive_minus_x) ^ 3
+					elif consecutive_plus_x == 0 and consecutive_minus_x == 0:
+						move_value = -((consecutive_plus_o + consecutive_minus_o) ^ 3)
+					else:
+						move_value = (consecutive_plus_x - consecutive_minus_o) ^ 3
+
+					heuristic += move_value
+
+					# Up and down move value
+					k = 1
+					consecutive_minus_x = 0
+					consecutive_minus_o = 0
+
+					while i - k >= 0:
+						if self.current_state[i - k][j] == 'X':
+							if consecutive_minus_o > 0:
+								break
+							consecutive_minus_x += 1
+						elif self.current_state[i - k][j] == 'O':
+							if consecutive_minus_x > 0:
+								break
+							consecutive_minus_o += 1
+						else:
+							break
+						k += 1
+
+					k = 1
+					consecutive_plus_x = 0
+					consecutive_plus_o = 0
+					while i + k < self.n:
+						if self.current_state[i + k][j] == 'X':
+							if consecutive_plus_o > 0:
+								break
+							consecutive_plus_x += 1
+						elif self.current_state[i + k][j] == 'O':
+							if consecutive_plus_x > 0:
+								break
+							consecutive_plus_o += 1
+						else:
+							break
+						k += 1
+
+					if consecutive_plus_o == 0 and consecutive_minus_o == 0:
+						move_value = (consecutive_plus_x + consecutive_minus_x) ^ 3
+					elif consecutive_plus_x == 0 and consecutive_minus_x == 0:
+						move_value = -((consecutive_plus_o + consecutive_minus_o) ^ 3)
+					else:
+						move_value = (consecutive_plus_x - consecutive_minus_o) ^ 3
+
+					heuristic += move_value
+
+					# \ Diagonal
+					k = 1
+					consecutive_minus_x = 0
+					consecutive_minus_o = 0
+
+					while i - k >= 0 and j - k >= 0:
+						if self.current_state[i - k][j - k] == 'X':
+							if consecutive_minus_o > 0:
+								break
+							consecutive_minus_x += 1
+						elif self.current_state[i - k][j - k] == 'O':
+							if consecutive_minus_x > 0:
+								break
+							consecutive_minus_o += 1
+						else:
+							break
+						k += 1
+
+					k = 1
+					consecutive_plus_x = 0
+					consecutive_plus_o = 0
+					while i + k < self.n and j + k < self.n:
+						if self.current_state[i + k][j + k] == 'X':
+							if consecutive_plus_o > 0:
+								break
+							consecutive_plus_x += 1
+						elif self.current_state[i + k][j + k] == 'O':
+							if consecutive_plus_x > 0:
+								break
+							consecutive_plus_o += 1
+						else:
+							break
+						k += 1
+
+					if consecutive_plus_o == 0 and consecutive_minus_o == 0:
+						move_value = (consecutive_plus_x + consecutive_minus_x) ^ 3
+					elif consecutive_plus_x == 0 and consecutive_minus_x == 0:
+						move_value = -((consecutive_plus_o + consecutive_minus_o) ^ 3)
+					else:
+						move_value = (consecutive_plus_x - consecutive_minus_o) ^ 3
+
+					heuristic += move_value
+
+					# / Diagonal
+					k = 1
+					consecutive_minus_x = 0
+					consecutive_minus_o = 0
+
+					while i - k >= 0 and j + k < self.n:
+						if self.current_state[i - k][j + k] == 'X':
+							if consecutive_minus_o > 0:
+								break
+							consecutive_minus_x += 1
+						elif self.current_state[i - k][j + k] == 'O':
+							if consecutive_minus_x > 0:
+								break
+							consecutive_minus_o += 1
+						else:
+							break
+						k += 1
+
+					k = 1
+					consecutive_plus_x = 0
+					consecutive_plus_o = 0
+					while i + k < self.n and j - k >= 0:
+						if self.current_state[i + k][j - k] == 'X':
+							if consecutive_plus_o > 0:
+								break
+							consecutive_plus_x += 1
+						elif self.current_state[i + k][j - k] == 'O':
+							if consecutive_plus_x > 0:
+								break
+							consecutive_plus_o += 1
+						else:
+							break
+						k += 1
+
+					if consecutive_plus_o == 0 and consecutive_minus_o == 0:
+						move_value = (consecutive_plus_x + consecutive_minus_x) ^ 3
+					elif consecutive_plus_x == 0 and consecutive_minus_x == 0:
+						move_value = -((consecutive_plus_o + consecutive_minus_o) ^ 3)
+					else:
+						move_value = (consecutive_plus_x - consecutive_minus_o) ^ 3
+
+					heuristic += move_value
+
+		return -1 * heuristic
 
 	def is_end(self):
 		# Horizontal win
