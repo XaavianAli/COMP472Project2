@@ -7,10 +7,10 @@ class Game:
 	ALPHABETA = 1
 	HUMAN = 2
 	AI = 3
-	
+
 	def __init__(self, recommend = True):
 		self.recommend = recommend
-		
+
 	def initialize_game(self):
 		while(True):
 			self.n = int(input('Enter the size n of the board in [3..10]: '))
@@ -20,12 +20,12 @@ class Game:
 
 		self.current_state = [['.']*self.n for i in range(self.n)]
 
-		while(True):	
+		while(True):
 			self.b = int(input(F'Enter the number of blocs b on the board in [0..{2 * self.n}]: '))
 			if(self.b < 0 or self.b > 2 * self.n):
 				print("Invalid number of blocs!")
 			else: break
-		
+
 		blocs_positions = []
 		blocs_count = 0
 		if blocs_count != 0:
@@ -40,6 +40,7 @@ class Game:
 				self.current_state[x][y] = 'B'
 			else:
 				print('The position is not valid! Try again.')
+		self.blocs = blocs_positions
 
 		while(True):
 			self.s = int(input(F'Enter the winning line-up size s in [3..{self.n}]: '))
@@ -79,20 +80,26 @@ class Game:
 			if(mode_1 != 'H' and mode_1 != 'AI' or mode_2 != 'H' and mode_2 != 'AI'):
 				print("One of the players has an invalid play mode! Please try again!")
 			else:
-				self.play_mode = mode_1 + "-" + mode_2 
+				self.play_mode = mode_1 + "-" + mode_2
 				break
+		self.p1 = mode_1
+		self.p2 = mode_2
 
 		# Player X always plays first
 		self.player_turn = 'X'
 
-	def draw_board(self):
+	def draw_board(self,f):
 		print()
+		f.write("\n")
 		for y in range(self.n):
 			for x in range(self.n):
 				print(F'{self.current_state[x][y]}', end="")
+				f.write(F'{self.current_state[x][y]}')
 			print()
+			f.write("\n")
 		print()
-		
+		f.write("\n")
+
 	def is_valid(self, x, y):
 		if x < 0 or x > self.n - 1 or y < 0 or y > self.n - 1:
 			return False
@@ -144,7 +151,7 @@ class Game:
 		x_freq_counter = 0
 
 		# Horizontal score for O
-		for i in range(self.n):			
+		for i in range(self.n):
 			for j in range(self.n):
 				if j + self.s > self.n: break
 				o_counter = 0
@@ -162,7 +169,7 @@ class Game:
 					o_freq_counter += 1
 
 		# Vertical score for O
-		for i in range(self.n):			
+		for i in range(self.n):
 			for j in range(self.n):
 				if j + self.s > self.n: break
 				o_counter = 0
@@ -181,7 +188,7 @@ class Game:
 
 		# Diagonal (\) score for O
 		for i in range(self.n):
-			if i + self.s > self.n: break		
+			if i + self.s > self.n: break
 			for j in range(self.n):
 				if j + self.s > self.n: break
 				o_counter = 0
@@ -200,7 +207,7 @@ class Game:
 
 		# Diagonal (/) score for O
 		for i in range(self.n):
-			if i + self.s > self.n: break		
+			if i + self.s > self.n: break
 			for j in range(self.n):
 				if j - (self.s - 1) < 0: continue
 				o_counter = 0
@@ -218,7 +225,7 @@ class Game:
 					o_freq_counter += 1
 
 		# Horizontal score for X
-		for i in range(self.n):			
+		for i in range(self.n):
 			for j in range(self.n):
 				if j + self.s > self.n: break
 				x_counter = 0
@@ -236,7 +243,7 @@ class Game:
 					x_freq_counter += 1
 
 		# Vertical score for X
-		for i in range(self.n):			
+		for i in range(self.n):
 			for j in range(self.n):
 				if j + self.s > self.n: break
 				x_counter = 0
@@ -255,7 +262,7 @@ class Game:
 
 		# Diagonal (\) score for X
 		for i in range(self.n):
-			if i + self.s > self.n: break		
+			if i + self.s > self.n: break
 			for j in range(self.n):
 				if j + self.s > self.n: break
 				x_counter = 0
@@ -274,7 +281,7 @@ class Game:
 
 		# Diagonal (/) score for X
 		for i in range(self.n):
-			if i + self.s > self.n: break		
+			if i + self.s > self.n: break
 			for j in range(self.n):
 				if j - (self.s - 1) < 0: continue
 				x_counter = 0
@@ -299,7 +306,7 @@ class Game:
 
 	def is_end(self):
 		# Horizontal win
-		for i in range(self.n):			
+		for i in range(self.n):
 			for j in range(self.n):
 				if j + self.s > self.n: break
 				symbol = self.current_state[i][j]
@@ -309,11 +316,11 @@ class Game:
 					cell = self.current_state[i][k]
 					if cell == symbol:
 						symbol_counter += 1
-				if symbol_counter == self.s: 
+				if symbol_counter == self.s:
 					return symbol
 
 		# Vertical win
-		for i in range(self.n):			
+		for i in range(self.n):
 			for j in range(self.n):
 				if j + self.s > self.n: break
 				symbol = self.current_state[j][i]
@@ -323,12 +330,12 @@ class Game:
 					cell = self.current_state[k][i]
 					if cell == symbol:
 						symbol_counter += 1
-				if symbol_counter == self.s: 
+				if symbol_counter == self.s:
 					return symbol
 
 		# Diagonal (\) win
 		for i in range(self.n):
-			if i + self.s > self.n: break		
+			if i + self.s > self.n: break
 			for j in range(self.n):
 				if j + self.s > self.n: break
 				symbol = self.current_state[i][j]
@@ -338,12 +345,12 @@ class Game:
 					cell = self.current_state[i+k][j+k]
 					if cell == symbol:
 						symbol_counter += 1
-				if symbol_counter == self.s: 
+				if symbol_counter == self.s:
 					return symbol
 
 		# Diagonal (/) win
 		for i in range(self.n):
-			if i + self.s > self.n: break		
+			if i + self.s > self.n: break
 			for j in range(self.n):
 				if j - (self.s - 1) < 0: continue
 				symbol = self.current_state[i][j]
@@ -353,7 +360,7 @@ class Game:
 					cell = self.current_state[i+k][j-k]
 					if cell == symbol:
 						symbol_counter += 1
-				if symbol_counter == self.s: 
+				if symbol_counter == self.s:
 					return symbol
 
 		# Board not full
@@ -474,7 +481,7 @@ class Game:
 							x = i
 							y = j
 					self.current_state[i][j] = '.'
-					if max: 
+					if max:
 						if value >= beta:
 							return (value, x, y)
 						if value > alpha:
@@ -486,7 +493,7 @@ class Game:
 							beta = value
 		return (value, x, y)
 
-	def play(self,algo=None,player_x=None,player_o=None):
+	def play(self,f,algo=None,player_x=None,player_o=None):
 		if algo == None:
 			algo = self.ALPHABETA
 		if player_x == None:
@@ -494,7 +501,7 @@ class Game:
 		if player_o == None:
 			player_o = self.HUMAN
 		while True:
-			self.draw_board()
+			self.draw_board(f)
 			if self.check_end():
 				return
 			self.start = time.time()
@@ -514,18 +521,32 @@ class Game:
 						print(F'Evaluation time: {round(end - self.start, 7)}s')
 						print(F'Recommended move: x = {self.int_to_letter(x)}, y = {y}')
 					(x,y) = self.input_move()
+					f.write(F'Player {self.player_turn} plays: {self.int_to_letter(x)}{y}')
 			if (self.player_turn == 'X' and player_x == self.AI) or (self.player_turn == 'O' and player_o == self.AI):
 						print(F'Evaluation time: {round(end - self.start, 7)}s')
-						print(F'Player {self.player_turn} under AI control plays: x = {x}, y = {y}')
+						f.write(F'Player {self.player_turn} under AI control plays: {self.int_to_letter(x)}{y}\n\n')
+						f.write(F'Evaluation time: {round(end - self.start, 7)}s\n')
+						f.write("Heuristic evaluations: " + "\n")
+						f.write("Evaluations by depth: " + "\n")
+						f.write("Average evaluation depth: " + "\n")
+						f.write("Average recursion depth: " + "\n")
+						print(F'Player {self.player_turn} under AI control plays: {self.int_to_letter(x)}{y}')
 			self.current_state[x][y] = self.player_turn
 			self.switch_player()
 
 def main():
 	g = Game(recommend=True)
 	g.initialize_game()
+	trace = "gameTrace-" + str(g.n) + str(g.b) + str(g.s) + str(g.t) + ".txt"
+	f = open(trace,"w")
+	f.write("n=" + str(g.n) + " b=" + str(g.b) + " s=" + str(g.s) + " t=" + str(g.t))
+	f.write("\nBlocs: " + ' '.join(map(str, g.blocs)))
+	f.write("\n\nPlayer 1: " + str(g.p1) + " d=" + str(g.d1) + " a=" + str(g.use_alphabeta))
+	f.write("\nPlayer 2: " + str(g.p2) + " d=" + str(g.d2) + " a=" + str(g.use_alphabeta) + "\n\n")
 	types = player_types_string_to_enum(g.play_mode)
-	g.play(algo=Game.MINIMAX,player_x=types[0],player_o=types[1])
+	g.play(f,algo=Game.MINIMAX,player_x=types[0],player_o=types[1])
 	# g.play(algo=Game.ALPHABETA,player_x=Game.AI,player_o=Game.AI)
+	f.close()
 
 def player_types_string_to_enum(types_string):
 	types = types_string.split("-")
@@ -543,4 +564,3 @@ def player_types_string_to_enum(types_string):
 
 if __name__ == "__main__":
 	main()
-
