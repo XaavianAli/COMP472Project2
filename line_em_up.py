@@ -386,11 +386,11 @@ class Game:
                         k += 1
 
                     if consecutive_plus_o == 0 and consecutive_minus_o == 0:
-                        move_value = -((consecutive_plus_x + consecutive_minus_x) ^ 3)
+                        move_value = -((consecutive_plus_x + consecutive_minus_x) ^ 2)
                     elif consecutive_plus_x == 0 and consecutive_minus_x == 0:
-                        move_value = (consecutive_plus_o + consecutive_minus_o) ^ 3
+                        move_value = (consecutive_plus_o + consecutive_minus_o) ^ 2
                     else:
-                        move_value = (consecutive_plus_o - consecutive_minus_x) ^ 3
+                        move_value = (consecutive_plus_o - consecutive_minus_x) ^ 2
 
                     heuristic += move_value
 
@@ -429,11 +429,11 @@ class Game:
                         k += 1
 
                     if consecutive_plus_o == 0 and consecutive_minus_o == 0:
-                        move_value = -((consecutive_plus_x + consecutive_minus_x) ^ 3)
+                        move_value = -((consecutive_plus_x + consecutive_minus_x) ^ 2)
                     elif consecutive_plus_x == 0 and consecutive_minus_x == 0:
-                        move_value = (consecutive_plus_o + consecutive_minus_o) ^ 3
+                        move_value = (consecutive_plus_o + consecutive_minus_o) ^ 2
                     else:
-                        move_value = (consecutive_plus_o - consecutive_minus_x) ^ 3
+                        move_value = (consecutive_plus_o - consecutive_minus_x) ^ 2
 
                     heuristic += move_value
 
@@ -472,11 +472,11 @@ class Game:
                         k += 1
 
                     if consecutive_plus_o == 0 and consecutive_minus_o == 0:
-                        move_value = -((consecutive_plus_x + consecutive_minus_x) ^ 3)
+                        move_value = -((consecutive_plus_x + consecutive_minus_x) ^ 2)
                     elif consecutive_plus_x == 0 and consecutive_minus_x == 0:
-                        move_value = (consecutive_plus_o + consecutive_minus_o) ^ 3
+                        move_value = (consecutive_plus_o + consecutive_minus_o) ^ 2
                     else:
-                        move_value = (consecutive_plus_o - consecutive_minus_x) ^ 3
+                        move_value = (consecutive_plus_o - consecutive_minus_x) ^ 2
 
                     heuristic += move_value
 
@@ -515,11 +515,11 @@ class Game:
                         k += 1
 
                     if consecutive_plus_o == 0 and consecutive_minus_o == 0:
-                        move_value = -((consecutive_plus_x + consecutive_minus_x) ^ 3)
+                        move_value = -((consecutive_plus_x + consecutive_minus_x) ^ 2)
                     elif consecutive_plus_x == 0 and consecutive_minus_x == 0:
-                        move_value = (consecutive_plus_o + consecutive_minus_o) ^ 3
+                        move_value = (consecutive_plus_o + consecutive_minus_o) ^ 2
                     else:
-                        move_value = (consecutive_plus_o - consecutive_minus_x) ^ 3
+                        move_value = (consecutive_plus_o - consecutive_minus_x) ^ 2
 
                     heuristic += move_value
 
@@ -639,7 +639,6 @@ class Game:
             Average of Per-Move Average Recursion Depth:
             Total Number of Moves:{self.e2_total_moves}\n\n''')
 
-            f.close()
             # self.initialize_game()
         return self.result
 
@@ -714,38 +713,57 @@ class Game:
                     self.current_state[i][j] = '.'
         return (value, x, y)
 
-    def alphabeta(self, alpha=-2, beta=2, max=False):
+    def alphabeta(self, remainingDepth, x, y, alpha=-999, beta=999, max=False):
         # Minimizing for 'X' and maximizing for 'O'
         # Possible values are:
-        # -1 - win for 'X'
+        # -500 - win for 'X'
         # 0  - a tie
-        # 1  - loss for 'X'
-        # We're initially setting it to 2 or -2 as worse than the worst case:
-        value = 2
+        # 500  - loss for 'X'
+        # We're initially setting it to 999 or -999 as worse than the worst case:
+        value = 999
         if max:
-            value = -2
-        x = None
-        y = None
+            value = -999
+
+        if time.time() - self.start > 0.95 * self.t:
+            if time.time() - self.start > 0.99 * self.t:
+                return (0, x, y)
+            else:
+                if (self.player_turn == 'X'):
+                    self.e1_nodelist.append(self.d1 - remainingDepth)
+                    return (self.e1(), x, y)
+                else:
+                    self.e2_nodelist.append(self.d2 - remainingDepth)
+                    return (self.e2(), x, y)
+
         result = self.is_end()
         if result == 'X':
-            return (-1, x, y)
+            return (-500, x, y)
         elif result == 'O':
-            return (1, x, y)
+            return (500, x, y)
         elif result == '.':
             return (0, x, y)
-        for i in range(0, 3):
-            for j in range(0, 3):
+
+        if remainingDepth <= 0:
+            if (self.player_turn == 'X'):
+                self.e1_nodelist.append(self.d1)
+                return (self.e1(), x, y)
+            else:
+                self.e2_nodelist.append(self.d2)
+                return (self.e2(), x, y)
+
+        for i in range(self.n):
+            for j in range(self.n):
                 if self.current_state[i][j] == '.':
                     if max:
                         self.current_state[i][j] = 'O'
-                        (v, _, _) = self.alphabeta(alpha, beta, max=False)
+                        (v, _, _) = self.alphabeta(remainingDepth - 1, i, j, alpha=alpha, beta=beta, max=False)
                         if v > value:
                             value = v
                             x = i
                             y = j
                     else:
                         self.current_state[i][j] = 'X'
-                        (v, _, _) = self.alphabeta(alpha, beta, max=True)
+                        (v, _, _) = self.alphabeta(remainingDepth - 1, i, j, alpha=alpha, beta=beta, max=True)
                         if v < value:
                             value = v
                             x = i
@@ -782,9 +800,9 @@ class Game:
                     (_, x, y) = self.minimax(self.d2, None, None, max=True)
             else:  # algo == self.ALPHABETA
                 if self.player_turn == 'X':
-                    (m, x, y) = self.alphabeta(max=False)
+                    (m, x, y) = self.alphabeta(self.d1, None, None, max=False)
                 else:
-                    (m, x, y) = self.alphabeta(max=True)
+                    (m, x, y) = self.alphabeta(self.d2, None, None, max=True)
             end = time.time()
             if (self.player_turn == 'X' and player_x == self.HUMAN) or (
                     self.player_turn == 'O' and player_o == self.HUMAN):
@@ -866,8 +884,10 @@ def main():
     f.write("\n\nPlayer 1: " + str(g.p1) + " d=" + str(g.d1) + " a=" + str(g.use_alphabeta))
     f.write("\nPlayer 2: " + str(g.p2) + " d=" + str(g.d2) + " a=" + str(g.use_alphabeta) + "\n\n")
     types = player_types_string_to_enum(g.play_mode)
-    g.play(f, algo=Game.MINIMAX, player_x=types[0], player_o=types[1])
-    # g.play(algo=Game.ALPHABETA,player_x=Game.AI,player_o=Game.AI)
+    if (g.use_alphabeta):
+        g.play(f, algo=Game.ALPHABETA,player_x=types[0], player_o=types[1])
+    else:
+        g.play(f, algo=Game.MINIMAX, player_x=types[0], player_o=types[1])
     f.close()
 
 
