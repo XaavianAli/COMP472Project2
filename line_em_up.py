@@ -23,6 +23,8 @@ class Game:
     e2_total_evaluation_time = 0
     e1_total_moves = 0
     e2_total_moves = 0
+    e1_total_average_recursive_depth = 0
+    e2_total_average_recursive_depth = 0
 
     def __init__(self, recommend=True):
         self.recommend = recommend
@@ -796,6 +798,7 @@ class Game:
                             x = i
                             y = j
                     self.current_state[i][j] = '.'
+                    child_count += 1
                     if max:
                         if value >= beta:
                             ard = 0
@@ -876,6 +879,7 @@ class Game:
                 else:
                     print(F'Average evaluation depth: NaN')
                     f.write(F'Average evaluation depth: NaN\n')
+                print(F'Average recursion depth: {player1_ard}\n')
                 f.write(F'Average recursion depth: {player1_ard}\n')
                 self.e1_total_average_recursive_depth += player1_ard
                 self.e1_total_average_recursive_depth += player2_ard
@@ -902,6 +906,7 @@ class Game:
                 else:
                     print(F'Average evaluation depth: NaN')
                     f.write(F'Average evaluation depth: NaN\n')
+                print(F'Average recursion depth: {player2_ard}\n')
                 f.write(F'Average recursion depth: {player2_ard}\n')
                 self.e2_total_average_recursive_depth += player1_ard
                 self.e2_total_average_recursive_depth += player2_ard
