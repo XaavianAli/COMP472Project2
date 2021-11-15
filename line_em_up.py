@@ -667,52 +667,69 @@ class Game:
         if max:
             value = -999
 
+        current_depth = 0
+        if max:
+            current_depth = self.d1 - remainingDepth
+        else: 
+            current_depth = self.d2 - remainingDepth
+
         if time.time() - self.start > 0.95 * self.t:
             if time.time() - self.start > 0.99 * self.t:
-                return (0, x, y)
+                return (0, x, y, current_depth)
             else:
                 if (self.player_turn == 'X'):
                     self.e1_nodelist.append(self.d1 - remainingDepth)
-                    return (self.e1(), x, y)
+                    return (self.e1(), x, y, current_depth)
                 else:
                     self.e2_nodelist.append(self.d2 - remainingDepth)
-                    return (self.e2(), x, y)
+                    return (self.e2(), x, y, current_depth)
 
         result = self.is_end()
         if result == 'X':
-            return (-500, x, y)
+            return (-500, x, y, current_depth)
         elif result == 'O':
-            return (500, x, y)
+            return (500, x, y, current_depth)
         elif result == '.':
-            return (0, x, y)
+            return (0, x, y, current_depth)
 
         if remainingDepth <= 0:
             if (self.player_turn == 'X'):
                 self.e1_nodelist.append(self.d1)
-                return (self.e1(), x, y)
+                return (self.e1(), x, y, current_depth)
             else:
                 self.e2_nodelist.append(self.d2)
-                return (self.e2(), x, y)
+                return (self.e2(), x, y, current_depth)
 
+        child_count = 0
+        children_ard = []
         for i in range(self.n):
             for j in range(self.n):
                 if self.current_state[i][j] == '.':
                     if max:
                         self.current_state[i][j] = 'O'
-                        (v, _, _) = self.minimax(remainingDepth - 1, i, j, max=False)
+                        (v, _, _, child_ard) = self.minimax(remainingDepth - 1, i, j, max=False)
+                        children_ard.append(child_ard)
                         if v > value:
                             value = v
                             x = i
                             y = j
                     else:
                         self.current_state[i][j] = 'X'
-                        (v, _, _) = self.minimax(remainingDepth - 1, i, j, max=True)
+                        (v, _, _, child_ard) = self.minimax(remainingDepth - 1, i, j, max=True)
+                        children_ard.append(child_ard)
                         if v < value:
                             value = v
                             x = i
                             y = j
                     self.current_state[i][j] = '.'
-        return (value, x, y)
+                    child_count += 1
+
+        ard = 0
+        for n in children_ard:
+            ard += n
+        ard /= child_count
+
+        return (value, x, y, ard)
 
     def alphabeta(self, alpha=-2, beta=2, max=False):
         # Minimizing for 'X' and maximizing for 'O'
@@ -777,9 +794,9 @@ class Game:
             self.start = time.time()
             if algo == self.MINIMAX:
                 if self.player_turn == 'X':
-                    (_, x, y) = self.minimax(self.d1, None, None, max=False)
+                    (_, x, y, ard) = self.minimax(self.d1, None, None, max=False)
                 else:
-                    (_, x, y) = self.minimax(self.d2, None, None, max=True)
+                    (_, x, y, ard) = self.minimax(self.d2, None, None, max=True)
             else:  # algo == self.ALPHABETA
                 if self.player_turn == 'X':
                     (m, x, y) = self.alphabeta(max=False)
