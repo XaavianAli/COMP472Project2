@@ -612,7 +612,7 @@ class Game:
             Total States Evaluated: {self.e1_total_states_evaluated}
             Average of Per-Move Average Depth: {round(self.e1_total_average_depth / self.e1_total_moves, 10)}
             Total Evaluations at each Depth: {str(self.e1_total_node_depths)}
-            Average of Per-Move Average Recursion Depth:
+            Average of Per-Move Average Recursion Depth: {round(self.e1_total_average_recursive_depth / self.e1_total_moves, 10)}
             Total Number of Moves:{self.e1_total_moves}''')
 
             f.write(F'''Heuristics -- e1:
@@ -620,7 +620,7 @@ class Game:
             Total States Evaluated: {self.e1_total_states_evaluated}
             Average of Per-Move Average Depth: {round(self.e1_total_average_depth / self.e1_total_moves, 10)}
             Total Evaluations at each Depth: {str(self.e1_total_node_depths)}
-            Average of Per-Move Average Recursion Depth:
+            Average of Per-Move Average Recursion Depth: {round(self.e1_total_average_recursive_depth / self.e1_total_moves, 10)}
             Total Number of Moves:{self.e1_total_moves}\n\n''')
 
             print(F'''Heuristics -- e2:
@@ -628,7 +628,7 @@ class Game:
             Total States Evaluated: {self.e2_total_states_evaluated}
             Average of Per-Move Average Depth: {round(self.e2_total_average_depth / self.e2_total_moves, 10)}
             Total Evaluations at each Depth: {str(self.e2_total_node_depths)}
-            Average of Per-Move Average Recursion Depth:
+            Average of Per-Move Average Recursion Depth: {round(self.e2_total_average_recursive_depth / self.e2_total_moves, 10)}
             Total Number of Moves:{self.e2_total_moves}''')
 
             f.write(F'''Heuristics -- e2:
@@ -636,7 +636,7 @@ class Game:
             Total States Evaluated: {self.e2_total_states_evaluated}
             Average of Per-Move Average Depth: {round(self.e2_total_average_depth / self.e2_total_moves, 10)}
             Total Evaluations at each Depth: {str(self.e2_total_node_depths)}
-            Average of Per-Move Average Recursion Depth:
+            Average of Per-Move Average Recursion Depth: {round(self.e2_total_average_recursive_depth / self.e2_total_moves, 10)}
             Total Number of Moves:{self.e2_total_moves}\n\n''')
 
             # self.initialize_game()
@@ -741,46 +741,56 @@ class Game:
         if max:
             value = -999
 
+        current_depth = 0
+        if max:
+            current_depth = self.d1 - remainingDepth
+        else: 
+            current_depth = self.d2 - remainingDepth
+
         if time.time() - self.start > 0.95 * self.t:
             if time.time() - self.start > 0.99 * self.t:
-                return (0, x, y)
+                return (0, x, y, remainingDepth)
             else:
                 if (self.player_turn == 'X'):
                     self.e1_nodelist.append(self.d1 - remainingDepth)
-                    return (self.e1(), x, y)
+                    return (self.e1(), x, y, remainingDepth)
                 else:
                     self.e2_nodelist.append(self.d2 - remainingDepth)
-                    return (self.e2(), x, y)
+                    return (self.e2(), x, y, remainingDepth)
 
         result = self.is_end()
         if result == 'X':
-            return (-500, x, y)
+            return (-500, x, y, remainingDepth)
         elif result == 'O':
-            return (500, x, y)
+            return (500, x, y, remainingDepth)
         elif result == '.':
-            return (0, x, y)
+            return (0, x, y, remainingDepth)
 
         if remainingDepth <= 0:
             if (self.player_turn == 'X'):
                 self.e1_nodelist.append(self.d1)
-                return (self.e1(), x, y)
+                return (self.e1(), x, y, remainingDepth)
             else:
                 self.e2_nodelist.append(self.d2)
-                return (self.e2(), x, y)
+                return (self.e2(), x, y, remainingDepth)
 
+        child_count = 0
+        children_ard = []
         for i in range(self.n):
             for j in range(self.n):
                 if self.current_state[i][j] == '.':
                     if max:
                         self.current_state[i][j] = 'O'
-                        (v, _, _) = self.alphabeta(remainingDepth - 1, i, j, alpha=alpha, beta=beta, max=False)
+                        (v, _, _, child_ard) = self.alphabeta(remainingDepth - 1, i, j, alpha=alpha, beta=beta, max=False)
+                        children_ard.append(child_ard)
                         if v > value:
                             value = v
                             x = i
                             y = j
                     else:
                         self.current_state[i][j] = 'X'
-                        (v, _, _) = self.alphabeta(remainingDepth - 1, i, j, alpha=alpha, beta=beta, max=True)
+                        (v, _, _, child_ard) = self.alphabeta(remainingDepth - 1, i, j, alpha=alpha, beta=beta, max=True)
+                        children_ard.append(child_ard)
                         if v < value:
                             value = v
                             x = i
@@ -788,15 +798,29 @@ class Game:
                     self.current_state[i][j] = '.'
                     if max:
                         if value >= beta:
-                            return (value, x, y)
+                            ard = 0
+                            for n in children_ard:
+                                ard += n
+                            ard /= child_count
+                            return (value, x, y, ard)
                         if value > alpha:
                             alpha = value
                     else:
                         if value <= alpha:
-                            return (value, x, y)
+                            ard = 0
+                            for n in children_ard:
+                                ard += n
+                            ard /= child_count
+                            return (value, x, y, ard)
                         if value < beta:
                             beta = value
-        return (value, x, y)
+
+        ard = 0
+        for n in children_ard:
+            ard += n
+        ard /= child_count
+        
+        return (value, x, y, ard)
 
     def play(self, f, algo=None, player_x=None, player_o=None):
         if algo == None:
@@ -810,16 +834,18 @@ class Game:
             if self.check_end(f):
                 return
             self.start = time.time()
+            player1_ard = 0
+            player2_ard = 0
             if algo == self.MINIMAX:
                 if self.player_turn == 'X':
-                    (_, x, y, ard) = self.minimax(self.d1, None, None, max=False)
+                    (_, x, y, player1_ard) = self.minimax(self.d1, None, None, max=False)
                 else:
-                    (_, x, y, ard) = self.minimax(self.d2, None, None, max=True)
+                    (_, x, y, player2_ard) = self.minimax(self.d2, None, None, max=True)
             else:  # algo == self.ALPHABETA
                 if self.player_turn == 'X':
-                    (m, x, y) = self.alphabeta(self.d1, None, None, max=False)
+                    (m, x, y, player1_ard) = self.alphabeta(self.d1, None, None, max=False)
                 else:
-                    (m, x, y) = self.alphabeta(self.d2, None, None, max=True)
+                    (m, x, y, player2_ard) = self.alphabeta(self.d2, None, None, max=True)
             end = time.time()
             if (self.player_turn == 'X' and player_x == self.HUMAN) or (
                     self.player_turn == 'O' and player_o == self.HUMAN):
@@ -850,7 +876,9 @@ class Game:
                 else:
                     print(F'Average evaluation depth: NaN')
                     f.write(F'Average evaluation depth: NaN\n')
-                f.write("Average recursion depth: " + "\n")
+                f.write(F'Average recursion depth: {player1_ard}\n')
+                self.e1_total_average_recursive_depth += player1_ard
+                self.e1_total_average_recursive_depth += player2_ard
                 print(F'Player {self.player_turn} under AI control plays: {self.int_to_letter(x)}{y}')
             elif (self.player_turn == 'O' and player_o == self.AI):
                 self.e2_total_moves += 1
@@ -874,7 +902,9 @@ class Game:
                 else:
                     print(F'Average evaluation depth: NaN')
                     f.write(F'Average evaluation depth: NaN\n')
-                f.write("Average recursion depth: " + "\n")
+                f.write(F'Average recursion depth: {player2_ard}\n')
+                self.e2_total_average_recursive_depth += player1_ard
+                self.e2_total_average_recursive_depth += player2_ard
                 print(F'Player {self.player_turn} under AI control plays: {self.int_to_letter(x)}{y}')
             self.e1_total_states_evaluated += len(self.e1_nodelist)
             self.e2_total_states_evaluated += len(self.e2_nodelist)
